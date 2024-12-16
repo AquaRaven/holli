@@ -1,0 +1,57 @@
+require('dotenv').config();
+const Web3 = require('web3');
+
+// Setup Web3 provider (you can use Infura, Alchemy, or any Ethereum node URL)
+const web3 = new Web3(new Web3.providers.HttpProvider(`https://mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`));
+
+// Contract address and ABI
+const contractAddress = process.env.CONTRACT_ADDRESS;
+const contractABI = [
+    // Define your contract ABI (simplified example for ERC-20 Transfer event)
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "name": "value",
+                "type": "uint256"
+            }
+        ],
+        "name": "Transfer",
+        "type": "event"
+    },
+    // Add more events or functions if needed
+];
+
+const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+// Monitor Transfer event
+contract.events.Transfer({
+    fromBlock: 'latest',
+}, (error, event) => {
+    if (error) {
+        console.error("Error in event:", error);
+    } else {
+        console.log("New Transfer Event:", event);
+        // You can process the event data, e.g., log or store in a database
+    }
+});
+
+// Example of monitoring new blocks
+web3.eth.subscribe('newBlockHeaders', (error, blockHeader) => {
+    if (!error) {
+        console.log('New Block:', blockHeader);
+    } else {
+        console.error("Error in block subscription:", error);
+    }
+});
